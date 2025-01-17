@@ -1,0 +1,604 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bipagem do Frete</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: Arial, sans-serif;
+    }
+    body {
+      background-color: #f4f4f9;
+      color: #333;
+      padding: 20px;
+    }
+    .container {
+      max-width: 900px;
+      margin: 0 auto;
+      background: #fff;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    }
+    h1 {
+      text-align: center;
+      margin-bottom: 20px;
+      color: #9600D2;
+    }
+    .card {
+      margin-bottom: 20px;
+      padding: 15px;
+      border: 1px solid #ddd;
+      border-radius: 10px;
+      background-color: #f9f9f9;
+    }
+    .card-header {
+      font-weight: bold;
+      font-size: 18px;
+      margin-bottom: 10px;
+      text-align: center;
+      color: #fff;
+      background-color: #9600D2;
+      padding: 10px;
+      border-radius: 8px 8px 0 0;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 10px;
+    }
+    th, td {
+      padding: 10px;
+      text-align: center;
+      border: 1px solid #ddd;
+    }
+    th {
+      background-color: #9600D2;
+      color: white;
+    }
+    .progress-bar {
+      width: 100%;
+      max-width: 300px;
+      height: 20px;
+      background-color: #ddd;
+      border-radius: 10px;
+      overflow: hidden;
+      position: relative;
+      margin: 0 auto;
+    }
+    .progress-bar-fill {
+      height: 100%;
+      background-color: #27ae60;
+      transition: width 0.3s ease;
+    }
+    .progress-text {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      font-size: 12px;
+      color: #fff;
+      font-weight: bold;
+    }
+    .actions {
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+      margin-top: 20px;
+    }
+    .btn {
+      padding: 10px 20px;
+      border: none;
+      border-radius: 5px;
+      font-size: 14px;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+    .btn-green {
+      background-color: #27ae60;
+      color: white;
+    }
+    .btn-green:hover {
+      background-color: #1e8449;
+    }
+    .btn-blue {
+      background-color: #3498db;
+      color: white;
+    }
+    .btn-blue:hover {
+      background-color: #217dbb;
+    }
+    .btn-red {
+      background-color: #e74c3c;
+      color: white;
+    }
+    .btn-red:hover {
+      background-color: #c0392b;
+    }
+    .input-container {
+      text-align: center;
+      margin: 20px 0;
+    }
+    .input-bipagem {
+      width: 80%;
+      max-width: 400px;
+      padding: 10px;
+      font-size: 16px;
+      border: 1px solid #ddd;
+      border-radius: 5px;
+    }
+    .popup {
+      display: none;
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 400px;
+      max-width: 90%;
+      background: white;
+      border-radius: 10px;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+      z-index: 1000;
+      padding: 20px;
+    }
+    .popup-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 18px;
+      font-weight: bold;
+      margin-bottom: 10px;
+    }
+    .popup-body {
+      max-height: 300px;
+      overflow-y: auto;
+    }
+    .volume {
+      display: inline-block;
+      padding: 10px;
+      margin: 5px;
+      border-radius: 5px;
+      font-size: 14px;
+      color: white;
+    }
+    .volume.bipado {
+      background-color: #27ae60;
+    }
+    .volume.nao-bipado {
+      background-color: #e74c3c;
+    }
+    .popup-close {
+      background: none;
+      border: none;
+      font-size: 16px;
+      cursor: pointer;
+      color: #e74c3c;
+    }
+    .overlay {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.5);
+      z-index: 999;
+    }
+
+    .btn-blue {
+      padding: 10px 20px;
+      background-color: #3498db;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      font-size: 14px;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+  }
+  
+  .btn-blue:hover {
+      background-color: #217dbb;
+  }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Bipagem do Frete</h1>
+    <div class="card">
+      <div class="card-header">Informações do Envio</div>
+      <table>
+        <tr>
+          <th>Número do Frete</th>
+          <th>Produtos no Envio</th>
+          <th>Total de Volumes</th>
+          <th>Status</th>
+          <th>Progresso</th>
+        </tr>
+        <tr>
+          <td id="numeroFrete">-</td>
+          <td id="produtosEnvio">-</td>
+          <td id="totalVolumes">-</td>
+          <td id="statusEnvio">-</td>
+          <td>
+            <div class="progress-bar">
+              <div id="progressoEnvio" class="progress-bar-fill" style="width: 0%;"></div>
+              <div class="progress-text" id="progressoEnvioTexto">0%</div>
+            </div>
+          </td>
+        </tr>
+      </table>
+    </div>
+    <div class="card">
+      <div class="card-header">Volumes do Envio</div>
+      <table>
+        <tr>
+          <th>Total de Volumes</th>
+          <th>Volumes Bipados</th>
+          <th>Progresso</th>
+          <th>Ações</th>
+        </tr>
+        <tr>
+          <td id="totalVolumesCard">-</td>
+          <td id="volumesBipados">-</td>
+          <td>
+            <div class="progress-bar">
+              <div id="progressoVolumes" class="progress-bar-fill" style="width: 0%;"></div>
+              <div class="progress-text" id="progressoVolumesTexto">0%</div>
+            </div>
+          </td>
+          <td>
+            <button onclick="abrirPopup()">👁️</button>
+          </td>
+        </tr>
+      </table>
+    </div>
+    <div class="card">
+      <div class="card-header">Produtos do Envio</div>
+      <table>
+        <tr>
+          <th>Código ML</th>
+          <th>Quantidade</th>
+          <th>Quantidade Bipada</th>
+          <th>Progresso</th>
+        </tr>
+        <tbody id="produtosTabela"></tbody>
+      </table>
+    </div>
+    <div class="input-container">
+      <input class="input-bipagem" type="text" id="codigoBipado" placeholder="Digite o código bipado e pressione Enter">
+      <button id="toggleSequencia" class="btn btn-blue" onclick="toggleSequencia()">Ativar Bipagem por Sequência</button>
+    </div>
+    <div class="actions">
+      <button class="btn btn-green" onclick="conferirBipagem()">Conferir Bipagem</button>
+      <button class="btn btn-blue" onclick="salvarBipagem()">Salvar</button>
+      <button class="btn btn-red" onclick="finalizarEnvio()">Finalizar Envio</button>
+      <button class="btn btn-blue" onclick="voltarPagina()">Voltar</button>
+    </div>
+  </div>
+
+  <div class="overlay" id="overlay" onclick="fecharPopupVolumes()"></div>
+<div class="popup" id="popup">
+  <div class="popup-header">
+    Volumes do Envio
+    <button class="popup-close" onclick="fecharPopupVolumes()">&times;</button>
+  </div>
+  <div class="popup-body" id="popupBody"></div>
+</div>
+
+  <script>
+      const API_BASE_URL = "http://127.0.0.1:8000";
+  
+      function carregarDadosFrete() {
+          const urlParams = new URLSearchParams(window.location.search);
+          const numeroFrete = urlParams.get('frete');
+  
+          if (!numeroFrete) {
+              alert("Número do frete não especificado!");
+              return;
+          }
+  
+          fetch(`${API_BASE_URL}/bipagem/${numeroFrete}`)
+              .then(response => response.json())
+              .then(data => {
+                  document.getElementById("numeroFrete").textContent = data.envio.numero_frete;
+                  document.getElementById("produtosEnvio").textContent = data.envio.produtos_envio;
+                  document.getElementById("totalVolumes").textContent = data.envio.total_unidades;
+                  document.getElementById("statusEnvio").textContent = data.envio.status;
+                  document.getElementById("progressoEnvio").style.width = data.envio.progresso;
+                  document.getElementById("progressoEnvioTexto").textContent = data.envio.progresso;
+  
+                  document.getElementById("totalVolumesCard").textContent = data.envio.total_unidades;
+                  document.getElementById("volumesBipados").textContent = data.envio.volumes_bipados;
+                  document.getElementById("progressoVolumes").style.width = `${(data.envio.volumes_bipados / data.envio.total_unidades) * 100}%`;
+                  document.getElementById("progressoVolumesTexto").textContent = `${Math.floor((data.envio.volumes_bipados / data.envio.total_unidades) * 100)}%`;
+  
+                  const tabelaProdutos = document.getElementById("produtosTabela");
+                  tabelaProdutos.innerHTML = "";
+                  data.produtos.forEach(produto => {
+                      const row = document.createElement("tr");
+                      row.innerHTML = `
+                          <td>${produto.codigo_ml}</td>
+                          <td>${produto.quantidade}</td>
+                          <td>${produto.quantidade_bipada || 0}</td>
+                          <td>
+                              <div class="progress-bar">
+                                  <div class="progress-bar-fill" style="width: ${(produto.quantidade_bipada / produto.quantidade) * 100 || 0}%;"></div>
+                                  <div class="progress-text">${Math.floor((produto.quantidade_bipada / produto.quantidade) * 100 || 0)}%</div>
+                              </div>
+                          </td>
+                      `;
+                      tabelaProdutos.appendChild(row);
+                  });
+              })
+              .catch(error => {
+                  console.error("Erro ao carregar dados do frete:", error);
+                  alert("Erro ao carregar os dados do frete.");
+              });
+      }
+  
+      function abrirPopup() {
+        const urlParams = new URLSearchParams(window.location.search);
+        const numeroFrete = urlParams.get("frete");
+    
+        if (!numeroFrete) {
+            alert("Número do frete não especificado!");
+            return;
+        }
+    
+        fetch(`${API_BASE_URL}/envios/${numeroFrete}/volumes`)
+            .then((response) => response.json())
+            .then((data) => {
+                const popupBody = document.getElementById("popupBody");
+                popupBody.innerHTML = "";
+    
+                data.volumes.forEach((volume) => {
+                    const volumeDiv = document.createElement("div");
+                    volumeDiv.classList.add("volume");
+                    volumeDiv.textContent = volume.numero_volume;
+    
+                    if (volume.bipado) {
+                        volumeDiv.classList.add("bipado");
+                    } else {
+                        volumeDiv.classList.add("nao-bipado");
+                    }
+    
+                    popupBody.appendChild(volumeDiv);
+                });
+    
+                document.getElementById("overlay").style.display = "block";
+                document.getElementById("popup").style.display = "block";
+            })
+            .catch((error) => {
+                console.error("Erro ao carregar volumes:", error);
+                alert("Erro ao carregar volumes do envio.");
+            });
+    }
+
+    function fecharPopupVolumes() {
+      const overlay = document.getElementById("overlay");
+      const popup = document.getElementById("popup");
+  
+      if (overlay) overlay.style.display = "none";
+      if (popup) popup.style.display = "none";
+  
+      carregarDadosFrete(); // Atualiza os dados da interface principal após o fechamento
+  }
+  
+  
+      let inputTimeout; // Variável global para controlar o timer
+
+      document.getElementById("codigoBipado").addEventListener("input", function (event) {
+        clearTimeout(inputTimeout); // Limpa o timeout existente para evitar duplicação
+    
+        inputTimeout = setTimeout(() => {
+            const input = event.target.value.trim(); // Valor digitado
+            const urlParams = new URLSearchParams(window.location.search);
+            const numeroFrete = urlParams.get("frete"); // Número do frete extraído da URL
+    
+            if (!input) {
+                console.warn("Campo de entrada está vazio.");
+                return;
+            }
+    
+            let payload = {
+                codigo: input, // O código (produto ou volume)
+                sequenciaAtivada: sequenciaAtivada // Adiciona o estado atual da sequência
+            };
+    
+            console.log("Payload enviado ao backend:", payload);
+    
+            fetch(`${API_BASE_URL}/bipar/${numeroFrete}`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(payload),
+            })
+                .then((response) => {
+                    if (!response.ok) {
+                        return response.json().then((error) => {
+                            console.error("Erro no backend:", error.detail);
+                            throw new Error(error.detail || "Erro ao bipar.");
+                        });
+                    }
+                    return response.json();
+                })
+                .then((data) => {
+                    alert(data.message); // Exibe a mensagem de sucesso
+                    carregarDadosFrete(); // Atualiza os dados principais
+                })
+                .catch((error) => {
+                    console.error("Erro ao bipar:", error);
+                    alert(error.message || "Erro desconhecido ao bipar.");
+                });
+    
+            event.target.value = ""; // Limpa o campo de entrada
+        }, 300); // Delay para evitar múltiplas requisições rápidas
+    });
+    
+    function conferirBipagem() {
+      const urlParams = new URLSearchParams(window.location.search);
+      const numeroFrete = urlParams.get("frete");
+  
+      if (!numeroFrete) {
+          alert("Número do frete não especificado!");
+          return;
+      }
+  
+      fetch(`${API_BASE_URL}/bipagem/${numeroFrete}`)
+          .then((response) => response.json())
+          .then((data) => {
+              let detalhes = ""; // Armazena as informações do popup
+  
+              // Verifica os produtos bipados e faltantes
+              data.produtos.forEach(produto => {
+                  const faltam = produto.quantidade - (produto.quantidade_bipada || 0);
+                  if (faltam > 0) {
+                      detalhes += `Produto: ${produto.codigo_ml} - Faltam ${faltam} unidades\n`;
+                  } else {
+                      detalhes += `Produto: ${produto.codigo_ml} - Completo\n`;
+                  }
+              });
+  
+              // Verifica os volumes bipados e faltantes
+              const volumesFaltantes = data.envio.total_unidades - data.envio.volumes_bipados;
+              if (volumesFaltantes > 0) {
+                  detalhes += `Volumes: Faltam ${volumesFaltantes} volumes\n`;
+              } else {
+                  detalhes += `Volumes: Completo\n`;
+              }
+  
+              // Exibe o popup com os detalhes
+              exibirPopup(detalhes);
+          })
+          .catch((error) => {
+              console.error("Erro ao conferir bipagem:", error);
+              alert("Erro ao conferir bipagem.");
+          });
+  }
+  
+  function exibirPopup(mensagem) {
+      // Criação do elemento popup
+      const popup = document.createElement("div");
+      popup.className = "custom-popup";
+      popup.innerHTML = `
+          <div class="popup-content">
+              <h2 style="color: #9600D2; text-align: center;">Status da Bipagem</h2>
+              <div style="background-color: #f9f9f9; padding: 15px; border-radius: 8px; font-size: 14px; line-height: 1.6;">
+                  ${mensagem.replace(/\n/g, "<br>")}
+              </div>
+              <button onclick="fecharPopupBipagem()" style="
+                  margin-top: 15px;
+                  padding: 10px 20px;
+                  background-color: #9600D2;
+                  color: white;
+                  border: none;
+                  border-radius: 5px;
+                  font-size: 14px;
+                  cursor: pointer;
+                  transition: background-color 0.3s ease;
+              ">Fechar</button>
+          </div>
+      `;
+  
+      // Criação do elemento overlay
+      const overlay = document.createElement("div");
+      overlay.className = "popup-overlay";
+      overlay.style.position = "fixed";
+      overlay.style.top = "0";
+      overlay.style.left = "0";
+      overlay.style.width = "100%";
+      overlay.style.height = "100%";
+      overlay.style.backgroundColor = "rgba(0, 0, 0, 0.5)";
+      overlay.style.zIndex = "999";
+      overlay.onclick = fecharPopupBipagem; // Associa o evento de clique para fechar o popup
+  
+      // Estilização do popup
+      popup.style.position = "fixed";
+      popup.style.top = "50%";
+      popup.style.left = "50%";
+      popup.style.transform = "translate(-50%, -50%)";
+      popup.style.backgroundColor = "#fff";
+      popup.style.padding = "20px";
+      popup.style.boxShadow = "0 4px 15px rgba(0, 0, 0, 0.2)";
+      popup.style.borderRadius = "10px";
+      popup.style.zIndex = "1000";
+      popup.style.maxWidth = "400px";
+      popup.style.width = "90%";
+  
+      // Adiciona o popup e o overlay ao body
+      document.body.appendChild(overlay);
+      document.body.appendChild(popup);
+  }
+  
+  // Função para fechar o popup de bipagem
+  function fecharPopupBipagem() {
+      const popup = document.querySelector(".custom-popup");
+      const overlay = document.querySelector(".popup-overlay");
+      if (popup) popup.remove(); // Remove o popup de bipagem
+      if (overlay) overlay.remove(); // Remove o overlay associado
+  }
+  
+  function salvarBipagem() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const numeroFrete = urlParams.get("frete");
+
+    if (!numeroFrete) {
+        alert("Número do frete não especificado!");
+        return;
+    }
+
+    // Enviar requisição ao backend para atualizar o status
+    fetch(`${API_BASE_URL}/salvar/${numeroFrete}`, {
+        method: "POST",
+    })
+        .then((response) => {
+            if (!response.ok) {
+                throw new Error("Erro ao salvar o progresso da bipagem.");
+            }
+            return response.json();
+        })
+        .then((data) => {
+            alert(data.message); // Exibe a mensagem do backend
+        })
+        .catch((error) => {
+            console.error("Erro ao salvar bipagem:", error);
+            alert("Erro ao salvar bipagem. Por favor, tente novamente.");
+        });
+}
+
+      let sequenciaAtivada = false; // Estado inicial: sequência desativada
+
+function toggleSequencia() {
+    const senha = prompt("Digite a senha para alterar o estado da sequência:");
+
+    if (senha === "1234") {
+        sequenciaAtivada = !sequenciaAtivada; // Alterna o estado
+
+        const botao = document.getElementById("toggleSequencia");
+        if (sequenciaAtivada) {
+            botao.textContent = "Desativar Bipagem por Sequência";
+            botao.classList.remove("btn-blue");
+            botao.classList.add("btn-green");
+            alert("Bipagem por sequência ativada!");
+        } else {
+            botao.textContent = "Ativar Bipagem por Sequência";
+            botao.classList.remove("btn-green");
+            botao.classList.add("btn-blue");
+            alert("Bipagem por sequência desativada!");
+        }
+    } else {
+        alert("Senha inválida! Não foi possível alterar o estado da sequência.");
+    }
+}
+
+function voltarPagina() {
+  window.history.back(); // Volta para a página anterior no histórico do navegador
+}
+
+      document.addEventListener("DOMContentLoaded", carregarDadosFrete);
+  </script>
+</body>
+</html>
